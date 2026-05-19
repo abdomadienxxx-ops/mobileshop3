@@ -28,9 +28,8 @@ export default function Login() {
         setSuccess('Account created! Check your email for a confirmation link, then sign in.');
         setMode('signin');
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : typeof err === 'object' && err !== null ? (err as { message?: string })?.message || JSON.stringify(err) : String(err || '');
-      setError(message || 'Something went wrong');
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong');
     } finally {
       setLoading(false);
       submitting.current = false;
