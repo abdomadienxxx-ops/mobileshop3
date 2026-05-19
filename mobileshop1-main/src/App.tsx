@@ -52,7 +52,7 @@ function AuthenticatedApp({ currentPage, role }: { currentPage: string; role: 's
 }
 
 function AppContent() {
-  const { user, role, loading } = useAuth();
+  const { user, role, tenantId, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   if (loading) {
@@ -66,7 +66,7 @@ function AppContent() {
     );
   }
 
-  if (!user) {
+  if (!user || !tenantId) {
     return <Login />;
   }
 
