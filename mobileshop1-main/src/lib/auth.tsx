@@ -2,9 +2,9 @@ import { createContext, useContext, useState } from 'react';
 import type { AuthState } from './types';
 
 const MOCK_USER: AuthState = {
-  user: { id: 'demo-user', email: 'demo@phonevault.com' },
+  user: { id: '00000000-0000-0000-0000-000000000001', email: 'demo@phonevault.com' },
   role: 'store_owner',
-  tenantId: 'demo-tenant-0001',
+  tenantId: '00000000-0000-0000-0000-000000000002',
   tenantName: 'PhoneVault Demo Shop',
   loading: false,
 };
