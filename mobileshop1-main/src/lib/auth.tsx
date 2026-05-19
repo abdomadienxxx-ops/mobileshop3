@@ -2,13 +2,14 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { AuthState } from './types';
 
-const AuthContext = createContext<AuthState & { signIn: (e: string, p: string) => Promise<void>; signOut: () => Promise<void> }>({
+const AuthContext = createContext<AuthState & { signIn: (e: string, p: string) => Promise<void>; signUp: (e: string, p: string) => Promise<void>; signOut: () => Promise<void> }>({
   user: null,
   role: null,
   tenantId: null,
   tenantName: null,
   loading: true,
   signIn: async () => {},
+  signUp: async () => {},
   signOut: async () => {},
 });
 
@@ -85,13 +86,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  const signUp = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) throw new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+  };
+
   const signOut = async () => {
     if (isSupabaseConfigured) await supabase.auth.signOut();
     setState({ user: null, role: null, tenantId: null, tenantName: null, loading: false });
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signOut }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

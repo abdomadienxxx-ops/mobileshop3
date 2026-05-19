@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../lib/auth';
-import { Smartphone, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Smartphone, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const submitting = useRef(false);
 
@@ -15,12 +17,19 @@ export default function Login() {
     e.preventDefault();
     if (submitting.current) return;
     setError('');
+    setSuccess('');
     setLoading(true);
     submitting.current = true;
     try {
-      await signIn(email, password);
+      if (mode === 'signin') {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+        setSuccess('Account created! Check your email for a confirmation link, then sign in.');
+        setMode('signin');
+      }
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      setError(err.message || 'Something went wrong');
     } finally {
       setLoading(false);
       submitting.current = false;
@@ -39,12 +48,32 @@ export default function Login() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-lg font-semibold text-slate-900 mb-6">Sign in to your account</h2>
+          <div className="flex mb-6 bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => { setMode('signin'); setError(''); setSuccess(''); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'signup' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Sign Up
+            </button>
+          </div>
 
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              {success}
             </div>
           )}
 
@@ -67,8 +96,9 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={mode === 'signup' ? 'Create a password' : 'Enter your password'}
                   required
+                  minLength={6}
                   className="w-full px-4 py-2.5 pr-10 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500"
                 />
                 <button
@@ -84,7 +114,7 @@ export default function Login() {
               type="submit"
               className="w-full py-2.5 px-4 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-colors"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : 'Create account'}
             </button>
           </form>
         </div>
