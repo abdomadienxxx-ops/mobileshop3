@@ -72,18 +72,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadProfile]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert(error.message);
       throw new Error(error.message || 'Sign in failed');
     }
+    if (data.session?.user) {
+      const user = data.session.user;
+      try {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (!roles || roles.length === 0) {
+          const { data: tenant } = await supabase
+            .from('tenants')
+            .insert({ name: 'My Store' })
+            .select()
+            .single();
+          if (tenant) {
+            await supabase
+              .from('user_roles')
+              .insert({ user_id: user.id, tenant_id: tenant.id, role: 'store_owner' });
+          }
+        }
+      } catch {
+        // ignore – loadProfile handles the fallback
+      }
+      await loadProfile(user.id, user.email || '');
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       alert(error.message);
       throw new Error(error.message || 'Sign up failed');
+    }
+    if (data.session?.user) {
+      const user = data.session.user;
+      try {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (!roles || roles.length === 0) {
+          const { data: tenant } = await supabase
+            .from('tenants')
+            .insert({ name: 'My Store' })
+            .select()
+            .single();
+          if (tenant) {
+            await supabase
+              .from('user_roles')
+              .insert({ user_id: user.id, tenant_id: tenant.id, role: 'store_owner' });
+          }
+        }
+      } catch {
+        // ignore – loadProfile handles the fallback
+      }
+      await loadProfile(user.id, user.email || '');
     }
   };
 
